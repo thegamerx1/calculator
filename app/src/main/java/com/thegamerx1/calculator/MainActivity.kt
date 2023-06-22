@@ -3,6 +3,7 @@ package com.thegamerx1.calculator
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -19,6 +20,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -57,20 +59,21 @@ class MainActivity : ComponentActivity() {
                     .fillMaxHeight()
                     .padding(1.dp)
             ) {
-                Text(text = text)
+                Text(text, fontSize = 32.sp)
             }
         }
 
         Column(modifier = Modifier
             .fillMaxWidth()
             .padding(5.dp)) {
-            Column(modifier = Modifier.weight(2F)) {
-                Text(calculator.first?.toString() + " " + calculator.action.toString() + " " + calculator.second?.toString())
-                Text(text = calculator.result.toString(), fontSize = 32.sp)
+            Column(modifier = Modifier.weight(2F).fillMaxWidth(),
+            horizontalAlignment = Alignment.End) {
+                Text("${calculator.first ?: ""}${ActionToString(calculator.action)}${calculator.second ?: ""}", fontSize = 52.sp)
+                Text("${calculator.result ?: ""}" , fontSize = 66.sp)
             }
             Row(modifier = Modifier.weight(1F)) {
                 btn({ Calc() }, "AC", Modifier.weight(1f))
-                btn({ calculator.delDigit() }, "Del", Modifier.weight(2f))
+                btn({ calculator.delDigit() }, "⌫", Modifier.weight(2f))
                 btn({ calculator.action(Action.SUM) }, "+", Modifier.weight(1f))
             }
             Row(modifier = Modifier.weight(1F)) {
@@ -91,7 +94,7 @@ class MainActivity : ComponentActivity() {
                         Modifier.weight(1f)
                     )
                 }
-                btn({ calculator.action(Action.DIVIDE) }, "/", Modifier.weight(1f))
+                btn({ calculator.action(Action.DIVIDE) }, ActionToString(Action.DIVIDE), Modifier.weight(1f))
             }
             Row(modifier = Modifier.weight(1F)) {
                 listOf(7, 8, 9).forEach {
@@ -101,7 +104,7 @@ class MainActivity : ComponentActivity() {
                         Modifier.weight(1f)
                     )
                 }
-                btn({ calculator.action(Action.MULTIPLY) }, "*", Modifier.weight(1f))
+                btn({ calculator.action(Action.MULTIPLY) }, ActionToString(Action.MULTIPLY), Modifier.weight(1f))
             }
             Row(modifier = Modifier.weight(1F)) {
                 btn({ calculator.addDigit(0) }, "0", Modifier.weight(2f))
