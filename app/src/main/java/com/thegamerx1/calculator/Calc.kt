@@ -1,21 +1,35 @@
 package com.thegamerx1.calculator
 
 import java.math.BigDecimal
+import java.math.MathContext
+import java.math.RoundingMode
 
 
 enum class Action {
     DIVIDE, MULTIPLY, SUM, SUBTRACT
 }
 
+fun ActionToString(action: Action?): String {
+    return when (action) {
+        Action.DIVIDE -> "÷"
+        Action.MULTIPLY -> "×"
+        Action.SUM -> "+"
+        Action.SUBTRACT -> "-"
+        null -> ""
+    }
+}
+
+val MathContext = MathContext(10,RoundingMode.UP);
 
 data class Calc(
-    val result: BigDecimal? = null,
-    val action: Action? = null,
-    val first: BigDecimal? = null,
-    val second: BigDecimal? = null,
-    val isDotting: Boolean = false,
+    var result: BigDecimal? = null,
+    var action: Action? = null,
+    var first: BigDecimal? = null,
+    var second: BigDecimal? = null,
+    var isDotting: Boolean = false,
 ) {
     fun action(act: Action): Calc {
+        updateResult()
         return this.copy(action = act)
     }
 
@@ -24,7 +38,7 @@ data class Calc(
         if (first == null || second == null) return this
         return Calc(
             result = when (action) {
-                Action.DIVIDE -> first!! / second!!
+                Action.DIVIDE -> first!!.divide(second!!,MathContext)
                 Action.MULTIPLY -> first!! * second!!
                 Action.SUM -> first!! + second!!
                 Action.SUBTRACT -> first!! - second!!
@@ -34,30 +48,27 @@ data class Calc(
     }
 
     fun dot(): Calc {
+        updateResult()
         return this.copy(isDotting = true)
     }
 
     fun delDigit(): Calc {
-        var changing = if (action == null) first else second
-        changing.toString().dropLast(1).toBigDecimalOrNull()
+        updateResult()
+        val changing = (if (action == null) first else second).toString().dropLast(1).toBigDecimalOrNull()
         if (changing == null && action != null) {
             return this.copy(action = null, second = null)
         }
 
-        if (action != null) {
-            return this.copy(first = changing)
+        return if (action == null) {
+            this.copy(first = changing)
         } else {
-            return this.copy(second = changing)
+            this.copy(second = changing)
         }
     }
 
     fun addDigit(number: Int): Calc {
-        var changing = if (action == null) first else second
-        changing = if (changing != null) {
-            changing!! * BigDecimal(10) + BigDecimal(number)
-        } else {
-            BigDecimal(number)
-        }
+        updateResult()
+        val changing = _addDigit(if (action == null) first else second, number)
 
         return if (action == null) {
             this.copy(
@@ -69,4 +80,20 @@ data class Calc(
             )
         }
     }
+
+    private fun updateResult() {
+        if (result != null) {
+            first = result
+            result = null
+        }
+    }
+
+    private fun _addDigit(original: BigDecimal?, add: Int): BigDecimal {
+        return if (original == null) {
+            BigDecimal(add)
+        } else {
+            original * BigDecimal(10) + BigDecimal(add)
+        }
+    }
+
 }
