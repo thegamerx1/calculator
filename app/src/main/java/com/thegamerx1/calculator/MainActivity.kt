@@ -8,9 +8,7 @@ import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.with
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -27,7 +25,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
@@ -44,8 +41,7 @@ class MainActivity : ComponentActivity() {
             CalculatorTheme {
                 // A surface container using the 'background' color from the theme
                 Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
+                    modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background
                 ) {
                     Calculator()
                 }
@@ -57,12 +53,12 @@ class MainActivity : ComponentActivity() {
     @Composable
     @Preview
     private fun Calculator() {
-        var calculator by remember { mutableStateOf(Calc()) }
+        val calculator by remember { mutableStateOf(Calc()) }
 
         @Composable
-        fun btn(onClick: () -> Calc, text: String, modifier: Modifier) {
+        fun btn(onClick: () -> Unit, text: String, modifier: Modifier) {
             return Button(
-                onClick = { calculator = onClick() },
+                onClick = onClick,
                 shape = CutCornerShape(0),
                 modifier = modifier
                     .fillMaxHeight()
@@ -75,13 +71,10 @@ class MainActivity : ComponentActivity() {
         @Composable
         fun animateThis(value: Any) {
             AnimatedContent(targetState = value, transitionSpec = {
-                fadeIn(animationSpec = tween(50)) with
-                        fadeOut(animationSpec = tween(50))
+                fadeIn(animationSpec = tween(50)) with fadeOut(animationSpec = tween(50))
             }) { result ->
                 Text(
-                    result.toString(),
-                    fontSize = 52.sp,
-                    maxLines = 1
+                    result.toString(), fontSize = 52.sp, maxLines = 1
                 )
             }
         }
@@ -94,36 +87,32 @@ class MainActivity : ComponentActivity() {
             Column(
                 modifier = Modifier
                     .weight(2F)
-                    .fillMaxWidth(),
-                horizontalAlignment = Alignment.End
+                    .fillMaxWidth(), horizontalAlignment = Alignment.End
             ) {
                 if (calculator.result != null) {
                     AnimatedContent(targetState = calculator.result) { result ->
-                        Text("${result ?: ""}", fontSize = 66.sp)
+                        Text("${result ?: ""}", fontSize = 66.sp, maxLines = 1)
                     }
                 } else {
                     Row(
-                        horizontalArrangement = Arrangement.End,
-                        modifier = Modifier.fillMaxWidth()
+                        horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth()
                     ) {
                         animateThis(calculator.first ?: "")
-                        animateThis(ActionToString(calculator.action))
+                        animateThis(actionToString(calculator.action))
                         animateThis(calculator.second ?: "")
                     }
 
                 }
             }
             Row(modifier = Modifier.weight(1F)) {
-                btn({ Calc() }, "AC", Modifier.weight(1f))
+                btn({ calculator.reset() }, "AC", Modifier.weight(1f))
                 btn({ calculator.delDigit() }, "⌫", Modifier.weight(2f))
                 btn({ calculator.action(Action.SUM) }, "+", Modifier.weight(1f))
             }
             Row(modifier = Modifier.weight(1F)) {
                 listOf(1, 2, 3).forEach {
                     btn(
-                        { calculator.addDigit(it) },
-                        it.toString(),
-                        Modifier.weight(1f)
+                        { calculator.pressDigit(it) }, it.toString(), Modifier.weight(1f)
                     )
                 }
                 btn({ calculator.action(Action.SUBTRACT) }, "-", Modifier.weight(1f))
@@ -131,33 +120,29 @@ class MainActivity : ComponentActivity() {
             Row(modifier = Modifier.weight(1F)) {
                 listOf(4, 5, 6).forEach {
                     btn(
-                        { calculator.addDigit(it) },
-                        it.toString(),
-                        Modifier.weight(1f)
+                        { calculator.pressDigit(it) }, it.toString(), Modifier.weight(1f)
                     )
                 }
                 btn(
                     { calculator.action(Action.DIVIDE) },
-                    ActionToString(Action.DIVIDE),
+                    actionToString(Action.DIVIDE),
                     Modifier.weight(1f)
                 )
             }
             Row(modifier = Modifier.weight(1F)) {
                 listOf(7, 8, 9).forEach {
                     btn(
-                        { calculator.addDigit(it) },
-                        it.toString(),
-                        Modifier.weight(1f)
+                        { calculator.pressDigit(it) }, it.toString(), Modifier.weight(1f)
                     )
                 }
                 btn(
                     { calculator.action(Action.MULTIPLY) },
-                    ActionToString(Action.MULTIPLY),
+                    actionToString(Action.MULTIPLY),
                     Modifier.weight(1f)
                 )
             }
             Row(modifier = Modifier.weight(1F)) {
-                btn({ calculator.addDigit(0) }, "0", Modifier.weight(2f))
+                btn({ calculator.pressDigit(0) }, "0", Modifier.weight(2f))
                 btn({ calculator.dot() }, ".", Modifier.weight(1f))
                 btn({ calculator.calcResult() }, "=", Modifier.weight(1f))
             }
