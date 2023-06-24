@@ -4,8 +4,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import java.math.BigDecimal
-import java.math.MathContext
 import java.math.RoundingMode
+import kotlin.math.pow
 
 
 enum class Action {
@@ -22,7 +22,7 @@ fun actionToString(action: Action?): String {
     }
 }
 
-val MathContext = MathContext(10, RoundingMode.UP);
+val Rounding = RoundingMode.HALF_UP
 
 class Calc {
     var result: BigDecimal? by mutableStateOf(null)
@@ -49,7 +49,7 @@ class Calc {
     fun calcResult() {
         if (first == null || second == null) return
         val _result = when (action) {
-            Action.DIVIDE -> first!!.divide(second!!, MathContext)
+            Action.DIVIDE -> first!!.divide(second!!, 8, Rounding).stripTrailingZeros()
             Action.MULTIPLY -> first!! * second!!
             Action.SUM -> first!! + second!!
             Action.SUBTRACT -> first!! - second!!
@@ -84,13 +84,24 @@ class Calc {
 
     fun pressDigit(number: Int) {
         updateResult()
-        val changing = addDigit(if (action == null) first else second, number)
+        var changing = if (action == null) first else second
+        changing = if (isDotting) {
+            addDecimal(changing ?: BigDecimal(0), BigDecimal(number))
+        } else {
+            addDigit(changing, number)
+        }
+
 
         if (action == null) {
             first = changing
         } else {
             second = changing
         }
+    }
+
+    private fun addDecimal(number: BigDecimal, decimal: BigDecimal): BigDecimal {
+        val scale = (number.scale() + 1).coerceAtMost(10)
+        return decimal.divide(BigDecimal(10.0.pow(scale).toString()), scale, Rounding).add(number)
     }
 
     private fun updateResult() {
@@ -107,5 +118,4 @@ class Calc {
             original * BigDecimal(10) + BigDecimal(add)
         }
     }
-
 }
